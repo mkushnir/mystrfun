@@ -11,7 +11,7 @@ Testing
 
 In order to make sure the application passes the unit tests, install pytest and mock in your environment, or run:
 
-    $ pip install -r dev-requirements.txt
+    $ pip install -r test-requirements.txt
 
 
 Then run:
