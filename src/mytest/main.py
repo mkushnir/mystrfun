@@ -214,18 +214,6 @@ def _wikipedia(word):
         return make_response(
             (json.jsonify(message='No such wiki: %s' % w), 404, []))
 
-    response = session.get('https://en.wikipedia.org/w/api.php?'
-                           'format=json&'
-                           'action=parse&'
-                           'pageid=%d&'
-                           'prop=parsetree' %
-                           v['pageid'],
-                           timeout=app.config['UPSTREAM_TIMEOUT'])
-
-    result = response.json()
-    if 'error' in result:
-        raise Exception('Could not parse. Error: %r' % result)
-
     w = _get_wiki(session, v['pageid'], False)
     if '#REDIRECT' in w:
         w = _get_wiki(session, v['pageid'], True)
