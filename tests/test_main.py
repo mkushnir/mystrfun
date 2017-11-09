@@ -30,7 +30,8 @@ def _jsonmock(**kwargs):
 ])
 def test__random(jsonify, get, config, v):
     get.return_value.content = v
-    main._random()
+    res = main._random()
+    assert res == json.dumps({'result': v})
 
 
 @pytest.mark.parametrize('v', [
@@ -110,12 +111,25 @@ def test__wikipedia(wikistats_increment,
     assert res == expected
 
 
-def test__stats_get():
-    pass
+@mock.patch('mytest.main.json.jsonify', side_effect=_jsonmock)
+@mock.patch('mytest.main.app.wikistats_items')
+@pytest.mark.parametrize('v,n,exp', [
+    (
+        [('qwe', 1), ('asd', 2), ('zxc', 3)],
+        3,
+        json.dumps({'result': ['zxc', 'asd', 'qwe']})
+    ),
+])
+def test__stats_get(wikistats_items, jsonify, v, n, exp):
+    wikistats_items.return_value = v
+    res = main._stats_get(n)
+    assert res == exp
 
 
-def test__stats_reset():
-    pass
+@mock.patch('mytest.main.json.jsonify', side_effect=_jsonmock)
+def test__stats_reset(jsonify):
+    res = main._stats_reset()
+    assert res == json.dumps({'result': 'ok'})
 
 
 @mock.patch('mytest.main.requests.Session')
@@ -124,17 +138,21 @@ def test__stats_reset():
     (
         { 'type': 'success', 'value': { 'joke': 'qweqwe' } },
         None,
+        json.dumps({'result': 'qweqwe'}),
     ),
     (
         { 'type': 'error', 'value': { 'joke': 'qweqwe' } },
         Exception,
+        None
     ),
 
 ])
 def test__joke(jsonify, Session, v):
     Session.return_value.get.return_value.json.return_value = v[0]
     if v[1]:
+        res = None
         with pytest.raises(v[1]):
             main._joke()
     else:
-        main._joke()
+        res = main._joke()
+    assert res == v[2]
