@@ -11,7 +11,8 @@ import sys
 import urllib
 import signal
 
-from flask import Flask, json, make_response
+from functools import wraps
+from flask import Flask, json, request, make_response
 
 
 def _myterm(signum, frame):
@@ -140,6 +141,26 @@ Time:         %(asctime)s
 app = MyFlask(__name__)
 
 
+def check_auth(auth):
+    if auth:
+        app.logger.info('Fake auth for %(username)s is ok', auth)
+        return True
+    return False
+
+
+def auth(f):
+    @wraps(f)
+    def w(*args, **kwargs):
+        auth = request.authorization
+        if not check_auth(auth):
+            return make_response(
+                (json.jsonify(message='Authentication required (fake)'),
+                 401,
+                 {'WWW-Authenticate': 'Basic realm="Login Required (fake)"'}))
+        return f(*args, **kwargs)
+    return w
+
+
 @app.before_first_request
 def _before_first_request():
     # one time action
@@ -159,7 +180,12 @@ def eh(error):
 
 @app.route('/')
 def index():
-    return json.jsonify(result='ok')
+    return json.jsonify(
+        result=[
+            {"path": r.rule, "methods": list(r.methods)}
+            for r in app.url_map.iter_rules()
+        ]
+    )
 
 
 @app.route('/random')
@@ -222,12 +248,14 @@ def _wikipedia(word):
 
 
 @app.route('/stats/<int:n>')
+@auth
 def _stats_get(n):
     r = sorted(((v, k) for k, v in app.wikistats_items()), reverse=True)[:n]
     return json.jsonify(result=[i[1] for i in r])
 
 
 @app.route('/stats/reset', methods=['POST'])
+@auth
 def _stats_reset():
     app.wikistats_clear()
     return json.jsonify(result='ok')

@@ -4,7 +4,7 @@ Fun With Strings
 The Fun With Strings service provides an entertaining web API about English words.  You may ask the service to tell some word (in a random manner).  Or ask for a Wikipaedia article about your personal word of the day.  Finally, given a pair of first and last person names, get a joke about this person.
 
 
-Authenticated^WAny users will be able to see some internal stats of the service.
+Authenticated users will be able to manage some internal stats of the service.
 
 
 All API return the _200_ HTTP response on sucess and one of _4xx/5xx_ on errors.  Results are represented as json objects in the response body.
@@ -95,7 +95,7 @@ Return a Chuck Norris joke for the given name pair.  If either the _last-name_ o
 
 ## GET /stats/\<int:n\>
 
-Return the top _n_ words submitted to the _/wikipedia_ endpoint as an array of strings.  Example:
+Return the top _n_ words submitted to the _/wikipedia_ endpoint as an array of strings.  Needs authentication.  Example:
 
     GET /stats/2
 
@@ -106,10 +106,19 @@ Return the top _n_ words submitted to the _/wikipedia_ endpoint as an array of s
       ]
     }
 
+Errors:
+
+    GET /stats/2
+
+    401 Unauthorized
+    {
+        "message": "Authentication required (fake)"
+    }
+
 
 ## POST /stats/reset
 
-Clear the Wikipedia stats:
+Clear the Wikipedia stats. Needs authentication.
 
     POST /stats/reset
 
@@ -117,3 +126,12 @@ Clear the Wikipedia stats:
         "result": "ok"
     }
 
+
+Errors:
+
+    POST /stats/reset
+
+    401 Unauthorized
+    {
+        "message": "Authentication required (fake)"
+    }

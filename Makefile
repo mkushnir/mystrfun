@@ -27,12 +27,15 @@ do:
 	curl -v $T http://localhost:5000/wikipedia/Randomize
 	sleep 1
 	curl -v $T http://localhost:5000/wikipedia/qiwieuryt
-	curl -v $T http://localhost:5000/stats/2
+	curl -v $T --basic --user mkushnir:fake http://localhost:5000/stats/2
 	sleep 1
 	curl -v $T http://localhost:5000/joke/bill/gates
 	#curl -v $T http://localhost:5000/reopen
 reset:
-	curl -v -XPOST http://localhost:5000/stats/reset
+	curl -v -XPOST --basic --user mkushnir:fake http://localhost:5000/stats/reset
+
+foo:
+	curl -v http://localhost:5000/
 
 tar:
 	find . -type f -name '*.py[co]' -delete

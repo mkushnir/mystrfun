@@ -113,6 +113,7 @@ def test__wikipedia(wikistats_increment,
 
 @mock.patch('mytest.main.json.jsonify', side_effect=_jsonmock)
 @mock.patch('mytest.main.app.wikistats_items')
+@mock.patch('mytest.main.request')
 @pytest.mark.parametrize('v,n,exp', [
     (
         [('qwe', 1), ('asd', 2), ('zxc', 3)],
@@ -120,16 +121,24 @@ def test__wikipedia(wikistats_increment,
         json.dumps({'result': ['zxc', 'asd', 'qwe']})
     ),
 ])
-def test__stats_get(wikistats_items, jsonify, v, n, exp):
+def test__stats_get(request, wikistats_items, jsonify, v, n, exp):
+    request.authorization = {'username': 'qwe'}
     wikistats_items.return_value = v
     res = main._stats_get(n)
     assert res == exp
 
 
+@mock.patch('mytest.main.make_response', side_effect=lambda x: x[0])
 @mock.patch('mytest.main.json.jsonify', side_effect=_jsonmock)
-def test__stats_reset(jsonify):
+@mock.patch('mytest.main.request')
+@pytest.mark.parametrize('auth, exp', [
+    ({'username': 'qwe'}, {"result": "ok"}),
+    (None, {"message": "Authentication required (fake)"} )
+])
+def test__stats_reset(request, jsonify, make_response, auth, exp):
+    request.authorization = auth
     res = main._stats_reset()
-    assert res == json.dumps({'result': 'ok'})
+    assert res == json.dumps(exp)
 
 
 @mock.patch('mytest.main.requests.Session')
