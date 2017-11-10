@@ -148,7 +148,7 @@ def check_auth(auth):
     return False
 
 
-def auth(f):
+def authenticated(f):
     @wraps(f)
     def w(*args, **kwargs):
         auth = request.authorization
@@ -248,14 +248,14 @@ def _wikipedia(word):
 
 
 @app.route('/stats/<int:n>')
-@auth
+@authenticated
 def _stats_get(n):
     r = sorted(((v, k) for k, v in app.wikistats_items()), reverse=True)[:n]
     return json.jsonify(result=[i[1] for i in r])
 
 
 @app.route('/stats/reset', methods=['POST'])
-@auth
+@authenticated
 def _stats_reset():
     app.wikistats_clear()
     return json.jsonify(result='ok')
