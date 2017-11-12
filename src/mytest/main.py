@@ -168,7 +168,7 @@ def _before_first_request():
 
 
 @app.errorhandler(Exception)
-def eh(error):
+def eh500(error):
     app.logger.exception('Unhandled exception: %s', error)
     if app.config['DEBUG']:
         return json.jsonify(error_message=str(error)), 500
@@ -176,6 +176,12 @@ def eh(error):
         return json.jsonify(
             error_message='Application Error. Please contact support '
             'at support@mytest.com'), 500
+
+
+@app.errorhandler(404)
+def eh404(error):
+    app.logger.exception('Unhandled exception: %s', error)
+    return json.jsonify(error_message=str(error)), 404
 
 
 @app.route('/')
